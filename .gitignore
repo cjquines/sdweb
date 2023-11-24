@@ -1,0 +1,6 @@
+# Object files
+*.o
+
+# Build folder
+build/**
+!build/Makefile
