@@ -15,26 +15,14 @@ std::string the_text = "default";
 
 // these names can't get mangled
 extern "C" {
-extern void Suspend();
-extern void Resume();
+void init() { printf("have: %s\n", the_text.c_str()); }
 
-void init() {
-  printf("suspending now:\n");
-  Suspend();
-  printf("have: %s\n", the_text.c_str());
-  /* iofull ggg; */
-  /* return sdmain(argc, argv, ggg); */
-}
-
-void setText() { the_text = "hello"; }
-
-void resume() { Resume(); }
+void resume() { the_text = "asdf"; }
 }
 
 namespace emscripten {
 EMSCRIPTEN_BINDINGS(sdweb) {
   function("init", &init);
-  function("setText", &setText);
   function("resume", &resume);
 }
 } // namespace emscripten
@@ -49,7 +37,6 @@ void iofull::prepare_for_listing() {}
 
 uims_reply_thing iofull::get_startup_command() {
   // TODO
-  Suspend();
 }
 
 void iofull::set_window_title(char s[]) {}

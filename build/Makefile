@@ -4,21 +4,14 @@ CC = emcc
 
 DEFS = -static -Wall -Wno-switch -Wno-uninitialized -Wno-deprecated \
 			 -Wno-char-subscripts -Wno-narrowing \
-			 -exceptions
+			 -fwasm-exceptions
 
-# sASYNCIFY and fwasm-exceptions are incompatible, but it's fine because we
-# don't need to mix them (i hope)
 EMCCFLAGS = --preload-file sd_calls.dat \
 						--js-library sdweb/library_sdweb.js \
 						-lembind \
-						-sMODULARIZE \
-						-sASYNCIFY \
-						-sASYNCIFY_IMPORTS=[Suspend,Resume]
-						# -sASYNCIFY_IGNORE_INDIRECT \
-						# -sASYNCIFY_ADD=[setText] \
-						# -sASYNCIFY_ADVISE
+						-sMODULARIZE
 
-CDEBUGFLAGS = -O0
+CDEBUGFLAGS = -O3
 # CDEBUGFLAGS = -g -O3 -fsanitize=address -fsanitize=undefined
 
 CFLAGS = $(CDEBUGFLAGS) $(DEFS)
