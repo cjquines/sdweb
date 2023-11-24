@@ -14,10 +14,10 @@
 #include <cassert>
 #include <array>
 #include <climits>
-#include <emscripten/wire.h>
 #include <cstdint> // uintptr_t
 #include <vector>
 #include <type_traits>
+#include "wire.h"
 #if _LIBCPP_STD_VER >= 20
 #include <coroutine>
 #include <variant>
@@ -593,7 +593,7 @@ public:
 
   iterator begin() const;
   // our iterators are sentinel-based range iterators; use nullptr as the end sentinel
-  constexpr nullptr_t end() const { return nullptr; }
+  constexpr std::nullptr_t end() const { return nullptr; }
 
 #if _LIBCPP_STD_VER >= 20
   struct promise_type;
@@ -648,7 +648,7 @@ struct val::iterator {
   val&& operator*() { return std::move(cur_value); }
   const val& operator*() const { return cur_value; }
   void operator++() { cur_value = val(internal::_emval_iter_next(iter.as_handle())); }
-  bool operator!=(nullptr_t) const { return cur_value.as_handle() != nullptr; }
+  bool operator!=(std::nullptr_t) const { return cur_value.as_handle() != nullptr; }
 
 private:
   val iter;

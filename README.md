@@ -1,10 +1,12 @@
 # sdweb
 
+tested with emcc version 3.1.48
+
 the sd folder should be a near verbatim copy of sd source, except for:
 - .clang-format
 - sdweb/
 
-to build, cd `build` and run `emmake make`, then run `node sdweb.js`
+to build, cd `build` and run `emmake make`, then run `node test.js`
 
 ## design
 
@@ -25,7 +27,7 @@ sdui-web exposes, through embind, these handlers:
     - dumps the DisplayType array
 
 (calling javascript in c++)
-sdui-web uses, through sdui-web-library.js, these functions:
+sdui-web uses, through library_sdweb.js, these functions:
 
 for updating the listbox:
 - void ClearChoices()

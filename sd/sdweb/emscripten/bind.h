@@ -19,9 +19,9 @@
 #include <type_traits>
 #include <vector>
 
-#include <emscripten/em_macros.h>
-#include <emscripten/val.h>
-#include <emscripten/wire.h>
+#include "em_macros.h"
+#include "val.h"
+#include "wire.h"
 
 #if __has_feature(leak_sanitizer) || __has_feature(address_sanitizer)
 #include <sanitizer/lsan_interface.h>

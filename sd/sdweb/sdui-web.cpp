@@ -1,18 +1,43 @@
 // include these if they're not defined, because emcc includes them by default
 // (yes, this is sketchy, whatever)
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+#include <emscripten/bind.h>
+#include <emscripten/emscripten.h>
 #else
+#include "emscripten/bind.h"
 #include "emscripten/emscripten.h"
 #endif
 
 #include "../sd.h"
+#include <string>
 
-int main(int argc, char *argv[]) {
-  iofull ggg;
-  emscripten_log(EM_LOG_CONSOLE, "test");
+std::string the_text = "default";
+
+// these names can't get mangled
+extern "C" {
+extern void Suspend();
+extern void Resume();
+
+void init() {
+  printf("suspending now:\n");
+  Suspend();
+  printf("have: %s\n", the_text.c_str());
+  /* iofull ggg; */
   /* return sdmain(argc, argv, ggg); */
 }
+
+void setText() { the_text = "hello"; }
+
+void resume() { Resume(); }
+}
+
+namespace emscripten {
+EMSCRIPTEN_BINDINGS(sdweb) {
+  function("init", &init);
+  function("setText", &setText);
+  function("resume", &resume);
+}
+} // namespace emscripten
 
 int iofull::do_abort_popup() {
   return yesnoconfirm("Confirmation", (char *)0,
@@ -24,6 +49,7 @@ void iofull::prepare_for_listing() {}
 
 uims_reply_thing iofull::get_startup_command() {
   // TODO
+  Suspend();
 }
 
 void iofull::set_window_title(char s[]) {}
@@ -61,7 +87,7 @@ popup_return iofull::get_popup_string(Cstring prompt1, Cstring prompt2,
 
 void iofull::fatal_error_exit(int code, Cstring s1, Cstring s2) {
   emscripten_log(EM_LOG_ERROR, "%s: %s", s1, s2);
-  // general_final_exit(code);
+  general_final_exit(code);
 }
 
 void iofull::serious_error_print(Cstring s1) {
@@ -116,7 +142,30 @@ void iofull::bad_argument(Cstring s1, Cstring s2, Cstring s3) {
 void iofull::final_initialize() {}
 
 bool iofull::init_step(init_callback_state s, int n) {
-  // TODO
+  switch (s) {
+  case get_session_info:
+    session_index = 0;
+    sequence_number = -1;
+    break;
+
+  case final_level_query:
+    calling_level = l_mainstream;
+    strncat(outfile_string, filename_strings[calling_level],
+            MAX_FILENAME_LENGTH);
+    // TODO
+    break;
+
+  case init_database1:
+  case init_database2:
+  case calibrate_tick:
+  case do_tick:
+  case tick_end:
+  case do_accelerator:
+    printf("%d %d\n", s, n);
+    // most computers should do these instantly now
+    break;
+  }
+  return false;
 }
 
 void iofull::set_utils_ptr(ui_utils *utils_ptr) { m_ui_utils_ptr = utils_ptr; }

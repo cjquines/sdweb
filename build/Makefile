@@ -4,9 +4,22 @@ CC = emcc
 
 DEFS = -static -Wall -Wno-switch -Wno-uninitialized -Wno-deprecated \
 			 -Wno-char-subscripts -Wno-narrowing \
-			 -fwasm-exceptions
+			 -exceptions
 
-CDEBUGFLAGS = -O3
+# sASYNCIFY and fwasm-exceptions are incompatible, but it's fine because we
+# don't need to mix them (i hope)
+EMCCFLAGS = --preload-file sd_calls.dat \
+						--js-library sdweb/library_sdweb.js \
+						-lembind \
+						-sMODULARIZE \
+						-sASYNCIFY \
+						-sASYNCIFY_IMPORTS=[Suspend,Resume]
+						# -sASYNCIFY_IGNORE_INDIRECT \
+						# -sASYNCIFY_ADD=[setText] \
+						# -sASYNCIFY_ADVISE
+
+CDEBUGFLAGS = -O0
+# CDEBUGFLAGS = -g -O3 -fsanitize=address -fsanitize=undefined
 
 CFLAGS = $(CDEBUGFLAGS) $(DEFS)
 
@@ -32,10 +45,10 @@ prepare:
 	rsync --archive --update --recursive --exclude '*.o' ../sd/ .
 
 sdweb.html: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
-	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) --preload-file sd_calls.dat
+	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
 
 sdweb.js: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
-	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) --preload-file sd_calls.dat
+	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
 
 sd_calls.dat:
 	$(MAKE) -C ../sd -f makefile.linux64 sd_calls.dat
@@ -62,4 +75,4 @@ mapcachefile.cpp: mapcachefile.h
 $(SDLIB_OBJS) $(SDWEB_OBJS): sdui.h sd.h sdchars.h database.h paths.h
 
 clean:
-	find . -type f ! -name 'Makefile' -delete
+	find . -type f ! -name 'Makefile' ! -name 'test.js' -delete
