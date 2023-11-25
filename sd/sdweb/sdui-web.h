@@ -10,8 +10,10 @@
 
 #include "../sd.h"
 
-// roughly in the order these happen
 extern "C" {
+extern void Suspend();
+
+// roughly in the order these happen
 void init();
 void new_sequence();
 void on_startup_command(uint16_t minorpart);

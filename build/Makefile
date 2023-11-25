@@ -7,11 +7,14 @@ DEFS = -static -Wall -Wno-switch -Wno-uninitialized -Wno-deprecated \
 			 -fexceptions
 
 EMCCFLAGS = --preload-file sd_calls.dat \
-						--js-library sdweb/library_sdweb.js \
 						-lembind \
+						-sASYNCIFY \
+						-sASYNCIFY_IMPORTS=[Suspend] \
 						-sMODULARIZE \
 						-sSTACK_SIZE=128kb \
 						-sALLOW_MEMORY_GROWTH
+						# --js-library sdweb/library_sdweb.js \
+						# -sASYNCIFY_IGNORE_INDIRECT \ (can't??)
 
 CDEBUGFLAGS = -O3
 # CDEBUGFLAGS = -g -O3 -fsanitize=address -fsanitize=undefined

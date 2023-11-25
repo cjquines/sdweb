@@ -49,6 +49,13 @@ Because sdui-web doesn't use sdmain, it has to:
 
 (abandoned because we can't cooperative multithread)
 
+AAAAAH OKAY THERE'S SO MUCH TO CHANGE SO MAYBE WE SHOULD COOPERATIVE MULTITHREAD!!!
+- okay, like sdui-win, but when we're WaitingForCommand, we push_main_loop_blocker?
+- get_call_command calls emscripten_push_main_loop_blocker(something)
+- main loop blocks, f is run
+
+or what if we use asyncify again? what was wrong with last time?
+
 like sdui-win and sdui-tty, sdui-web defines the iofull methods
 
 (calling c++ in javascript)

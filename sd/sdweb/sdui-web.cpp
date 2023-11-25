@@ -1,9 +1,22 @@
 #include "sdui-web.h"
 
+// clang-format off
+EM_JS(void, Suspend, (), {
+  return Asyncify.handleSleep(function (resume) {
+    Module._resume_fn = resume;
+  });
+});
+// clang-format on
+
 // these names are exported and can't get mangled
 extern "C" {
 
 void init() {
+  printf("suspending!\n");
+  Suspend();
+  printf("resumed\n");
+  return;
+
   iofull ggg;
 
   enable_file_writing = false;
