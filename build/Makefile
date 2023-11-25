@@ -13,8 +13,7 @@ EMCCFLAGS = --preload-file sd_calls.dat \
 						-sMODULARIZE \
 						-sSTACK_SIZE=128kb \
 						-sALLOW_MEMORY_GROWTH
-						# --js-library sdweb/library_sdweb.js \
-						# -sASYNCIFY_IGNORE_INDIRECT \ (can't??)
+						# -sASYNCIFY_IGNORE_INDIRECT \ TODO?
 
 CDEBUGFLAGS = -O3
 # CDEBUGFLAGS = -g -O3 -fsanitize=address -fsanitize=undefined
@@ -42,11 +41,10 @@ all: sd_calls.dat sdweb.js
 prepare:
 	rsync --archive --update --recursive --exclude '*.o' ../sd/ .
 
-sdweb.html: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
-	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
-
 sdweb.js: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
 	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
+	mv sdweb.js ../ui/src/sdweb/index.js
+	mv sdweb.* ../ui/public
 
 sd_calls.dat:
 	$(MAKE) -C ../sd -f makefile.linux64 sd_calls.dat
@@ -74,3 +72,5 @@ $(SDLIB_OBJS) $(SDWEB_OBJS): sdui.h sd.h sdchars.h database.h paths.h
 
 clean:
 	find . -type f ! -name 'Makefile' ! -name 'test.js' -delete
+	rm ../ui/src/sdweb/index.js
+	rm ../ui/public/sdweb.*

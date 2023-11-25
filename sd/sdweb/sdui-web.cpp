@@ -30,6 +30,13 @@ EM_JS(void, ResetChoices, (), {
 EM_JS(void, AddChoice, (char *choice), {
   Module.choices.push(UTF8ToString(choice));
 });
+
+EM_JS(void, QueueOutput, (const char *line), {
+  if (!Module.output) {
+    Module.output = [];
+  }
+  Module.output.push(UTF8ToString(line));
+});
 // clang-format on
 
 // these names are exported and can't get mangled
@@ -46,7 +53,6 @@ EMSCRIPTEN_BINDINGS(sdweb) { function("init", &init); }
 
 // iofull implementation. mostly fake, but some of it's real
 
-// actual functions
 const char *iofull::version_string() { return "sdweb"; }
 void iofull::set_utils_ptr(ui_utils *utils_ptr) { m_ui_utils_ptr = utils_ptr; }
 ui_utils *iofull::get_utils_ptr() { return m_ui_utils_ptr; }
@@ -66,11 +72,13 @@ bool iofull::init_step(init_callback_state s, int n) {
   case do_tick:
   case tick_end:
   case do_accelerator:
+    emscripten_log(EM_LOG_CONSOLE, "%d %d\n", s, n);
     break;
   }
   return false;
 }
 
+// output functions
 void iofull::fatal_error_exit(int code, Cstring s1, Cstring s2) {
   emscripten_log(EM_LOG_ERROR, "%s: %s", s1, s2);
   general_final_exit(code);
@@ -80,16 +88,19 @@ void iofull::serious_error_print(Cstring s1) {
   emscripten_log(EM_LOG_ERROR, s1);
 }
 
+void iofull::add_new_line(const char the_line[], uint32_t drawing_picture) {
+  // TODO: interface with js
+  QueueOutput(the_line);
+}
+
 void iofull::update_resolve_menu(command_kind goal, int cur, int max,
                                  resolver_display_state state) {
-  // TODO: set something global that js can fetch?
+  // TODO: interface with js
 }
 
 void iofull::show_match() { AddChoice(gg77->matcher_p->m_full_extension); }
 
-// input functions, all of which suspend
-int iofull::do_abort_popup() { return POPUP_ACCEPT; }
-
+// input functions
 uims_reply_thing get_user_input(int which) {
   matcher_class &matcher = *gg77->matcher_p;
 
@@ -130,9 +141,6 @@ uims_reply_thing get_user_input(int which) {
   return uims_reply_thing(kind, index);
 }
 
-const uims_reply_thing FAKE_UIMS_REPLY =
-    uims_reply_thing(ui_command_select, command_quit);
-
 uims_reply_thing iofull::get_startup_command() {
   return get_user_input(matcher_class::e_match_startup_commands);
 }
@@ -144,6 +152,9 @@ uims_reply_thing iofull::get_call_command() {
 uims_reply_thing iofull::get_resolve_command() {
   return get_user_input(matcher_class::e_match_resolve_commands);
 }
+
+// TODO: the rest of these
+int iofull::do_abort_popup() { return POPUP_ACCEPT; }
 
 popup_return iofull::get_popup_string(Cstring prompt1, Cstring prompt2,
                                       Cstring final_inline_prompt, Cstring seed,
@@ -184,9 +195,6 @@ void iofull::bad_argument(Cstring s1, Cstring s2, Cstring s3) {}
 
 // these should do nothing (modulo debugging):
 void iofull::set_pick_string(Cstring string) {}
-void iofull::add_new_line(const char the_line[], uint32_t drawing_picture) {
-  printf("%s\n", the_line);
-}
 void iofull::no_erase_before_n(int n) {}
 void iofull::reduce_line_count(int n) {}
 void iofull::set_window_title(char s[]) {}
