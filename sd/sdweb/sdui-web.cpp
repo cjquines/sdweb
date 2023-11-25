@@ -1,4 +1,14 @@
-#include "sdui-web.h"
+// include these if they're not defined, because emcc includes them by default
+// (yes, this is sketchy, whatever)
+#ifdef __EMSCRIPTEN__
+#include <emscripten/bind.h>
+#include <emscripten/emscripten.h>
+#else
+#include "emscripten/bind.h"
+#include "emscripten/emscripten.h"
+#endif
+
+#include "../sd.h"
 
 // clang-format off
 EM_JS(void, Suspend, (), {
@@ -29,6 +39,10 @@ void init() {
   sdmain(0, nullptr, ggg);
 }
 }
+
+namespace emscripten {
+EMSCRIPTEN_BINDINGS(sdweb) { function("init", &init); }
+} // namespace emscripten
 
 // iofull implementation. mostly fake, but some of it's real
 
@@ -76,34 +90,60 @@ void iofull::show_match() { AddChoice(gg77->matcher_p->m_full_extension); }
 // input functions, all of which suspend
 int iofull::do_abort_popup() { return POPUP_ACCEPT; }
 
+uims_reply_thing get_user_input(int which) {
+  matcher_class &matcher = *gg77->matcher_p;
+
+  ResetChoices();
+  matcher.erase_matcher_input();
+  matcher.match_user_input(which, true, true, false);
+  SetUserInputPtr(matcher.m_user_input);
+  Suspend();
+  matcher.match_user_input(which, false, false, true);
+
+  // hope there's a match!
+  modifier_block &matchmatch = matcher.m_final_result.match;
+  uims_reply_kind kind = matchmatch.kind;
+  int index = matchmatch.index;
+
+  if (kind == ui_command_select) {
+    index = (int)command_command_values[index];
+  } else if (kind == ui_resolve_select) {
+    index = (int)resolve_command_values[index];
+  } else if (kind == ui_start_select) {
+    index = (int)startup_command_values[index];
+  } else if (kind == ui_concept_select || kind == ui_call_select) {
+    call_conc_option_state save_stuff = matchmatch.call_conc_options;
+    there_is_a_call = false;
+    bool retval =
+        deposit_call_tree(&matchmatch, (parse_block *)0,
+                          DFM1_CALL_MOD_MAND_ANYCALL / DFM1_CALL_MOD_BIT);
+    matchmatch.call_conc_options = save_stuff;
+    if (there_is_a_call) {
+      parse_state.topcallflags1 = the_topcallflags;
+      kind = ui_call_select;
+    }
+    if (retval) {
+      kind = ui_user_cancel;
+    }
+  }
+
+  return uims_reply_thing(kind, index);
+}
+
 const uims_reply_thing FAKE_UIMS_REPLY =
     uims_reply_thing(ui_command_select, command_quit);
 
 uims_reply_thing iofull::get_startup_command() {
-  SetUserInputPtr(gg77->matcher_p->m_user_input);
-  ResetChoices();
-  gg77->matcher_p->erase_matcher_input();
-  gg77->matcher_p->match_user_input(matcher_class::e_match_startup_commands,
-                                    true, true, false);
-  Suspend();
-  // js should resume after putting something in m_user_input
-  gg77->matcher_p->match_user_input(matcher_class::e_match_startup_commands,
-                                    false, false, true);
-
-  modifier_block &matchmatch = (*gg77->matcher_p).m_final_result.match;
-  int index = matchmatch.index;
-  if (matchmatch.kind == ui_start_select) {
-    index = (int)startup_command_values[index];
-  }
-  return uims_reply_thing(matchmatch.kind, index);
+  return get_user_input(matcher_class::e_match_startup_commands);
 }
 
 uims_reply_thing iofull::get_call_command() {
-  // TODO: deposit display to js
-  return FAKE_UIMS_REPLY;
+  return get_user_input(parse_state.call_list_to_use);
 }
 
-uims_reply_thing iofull::get_resolve_command() { return FAKE_UIMS_REPLY; }
+uims_reply_thing iofull::get_resolve_command() {
+  return get_user_input(matcher_class::e_match_resolve_commands);
+}
 
 popup_return iofull::get_popup_string(Cstring prompt1, Cstring prompt2,
                                       Cstring final_inline_prompt, Cstring seed,
