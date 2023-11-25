@@ -12,20 +12,11 @@
 
 extern "C" {
 extern void Suspend();
+extern void AddChoice(char *choice);
 
-// roughly in the order these happen
 void init();
-void new_sequence();
-void on_startup_command(uint16_t minorpart);
-void start_cycle();
-void on_call_command(uint16_t minorpart);
-void got_an_exception();
 }
 
 namespace emscripten {
-EMSCRIPTEN_BINDINGS(sdweb) {
-  function("init", &init);
-  function("on_startup_command", &on_startup_command);
-  function("on_call_command", &on_call_command);
-}
+EMSCRIPTEN_BINDINGS(sdweb) { function("init", &init); }
 } // namespace emscripten
