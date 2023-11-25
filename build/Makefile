@@ -43,6 +43,7 @@ prepare:
 
 sdweb.js: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
 	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
+	echo 'export default Module;' >> sdweb.js
 	mv sdweb.js ../ui/src/sdweb/index.js
 	mv sdweb.* ../ui/public
 
