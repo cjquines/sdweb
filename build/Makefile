@@ -4,12 +4,14 @@ CC = emcc
 
 DEFS = -static -Wall -Wno-switch -Wno-uninitialized -Wno-deprecated \
 			 -Wno-char-subscripts -Wno-narrowing \
-			 -fwasm-exceptions
+			 -fexceptions
 
 EMCCFLAGS = --preload-file sd_calls.dat \
 						--js-library sdweb/library_sdweb.js \
 						-lembind \
-						-sMODULARIZE
+						-sMODULARIZE \
+						-sSTACK_SIZE=128kb \
+						-sALLOW_MEMORY_GROWTH
 
 CDEBUGFLAGS = -O3
 # CDEBUGFLAGS = -g -O3 -fsanitize=address -fsanitize=undefined

@@ -10,6 +10,45 @@ to build, cd `build` and run `emmake make`, then run `node test.js`
 
 ## design
 
+Unlike sdui-tty or sdui-win, sdui-web does not use sdmain or iofull, because
+it's incompatible with our design. The main thing is that the C++ code is fully
+synchronous, so when JS calls it, it should always run to completion. That means
+we can't use any of the iofull input commands, like "get_call_command". Hence,
+we must pick up execution after 
+
+Instead, sdui-web uses its own handlers to work with the global state.
+Because sdui-web doesn't use sdmain, it has to:
+
+- initialize the globals that sdmain() does
+- create its own global matcher
+- call open_session()
+    - this relies on the global gg77. It doesn't rely on any input from that
+    global, so we be as uninformative as possible (except for setting call
+    levels, in which we pick c4, then filter it JS-side)
+    - make sure we don't use any cache file stuff (in 2023, square dance calls
+    are not big data)
+    - fill in program options too i guess
+- have its own run_program() loop. the run_program call should be split:
+    - the trick to simplifying run_program is to ignore most of the commands...
+    - there's the program start, printing the banner and (lack of) output file.
+    - js will call handle_command() to handle a given command
+    - js can call startup_command() to give a startup command and initialize
+      configuration and such
+    - js then calls initialize_call() to run the label under start_cycle to simple_restart
+        - in this loop, js will call methods to deal with get_call_command()
+        - js *cannot* partly get a call. for example, what happens when
+          "catch <ANYTHING> <N>" is clicked?
+        - a good first-level might be getting **query_for_call** matching to work
+    - after getting a call, js will call toplevelmove(), possibly getting an
+      exception to handle
+    - full_resolve() needs to be handled
+- call close_session()
+- call general_final_exit()
+
+## old design
+
+(abandoned because we can't cooperative multithread)
+
 like sdui-win and sdui-tty, sdui-web defines the iofull methods
 
 (calling c++ in javascript)
