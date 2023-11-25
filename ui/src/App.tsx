@@ -1,36 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 
-import init from "./sdweb";
+import useSd from "./useSd";
 
 function App() {
-  const [choices, setChoices] = useState<string[]>(["loading"]);
-  const [input, setInput] = useState("");
+  const [inited, setInited] = useState(false);
+  const [output, setOutput] = useState<string[]>(["loading"]);
+  const [choices, setChoices] = useState<string[]>([]);
   const flush = useRef<(resp: string) => void>();
+  const Module = useSd();
 
   useEffect(() => {
-    init().then((Module) => {
-      Module.init();
-      setChoices(Module.choices);
+    if (inited || !Module) return;
+    setInited(true);
 
-      flush.current = (resp) => {
-        Module.write_to_user_input(resp);
-        Module._resume_fn();
-        setChoices(Module.choices);
-      };
-    });
-  }, []);
+    Module.init();
+    setOutput(Module.output);
+    setChoices(Module.choices);
+    Module.output = [];
+
+    flush.current = (resp) => {
+      Module.write_to_user_input(resp);
+      Module._resume_fn();
+      setOutput(Module.output);
+      setChoices(Module.choices);
+      Module.output = [];
+    };
+  }, [inited, Module]);
 
   return (
     <>
-      <div>{choices.join(",")}</div>
+      <pre>{output.join("\n")}</pre>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          flush.current?.(input);
-          setInput("");
+          flush.current?.(
+            String(new FormData(e.target as HTMLFormElement).get("input"))
+          );
         }}
       >
-        <input value={input} onChange={(e) => setInput(e.target.value)} />
+        <select name="input">
+          {choices.map((choice) => (
+            <option key={choice} value={choice}>
+              {choice}
+            </option>
+          ))}
+        </select>
+        <button type="submit">submit</button>
       </form>
     </>
   );
