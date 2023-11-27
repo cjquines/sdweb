@@ -8,8 +8,9 @@ DEFS = -static -Wall -Wno-switch -Wno-uninitialized -Wno-deprecated \
 
 EMCCFLAGS = --preload-file sd_calls.dat \
 						-lembind \
+						-sASSERTIONS \
 						-sASYNCIFY \
-						-sASYNCIFY_IMPORTS=[Suspend] \
+						-sASYNCIFY_IMPORTS=[Suspend,Suspend_] \
 						-sMODULARIZE \
 						-sSTACK_SIZE=128kb \
 						-sALLOW_MEMORY_GROWTH
@@ -73,5 +74,5 @@ $(SDLIB_OBJS) $(SDWEB_OBJS): sdui.h sd.h sdchars.h database.h paths.h
 
 clean:
 	find . -type f ! -name 'Makefile' ! -name 'test.js' -delete
-	rm ../ui/src/sdweb/index.js
-	rm ../ui/public/sdweb.*
+	rm -f ../ui/src/sdweb/index.js
+	rm -f ../ui/public/sdweb.*

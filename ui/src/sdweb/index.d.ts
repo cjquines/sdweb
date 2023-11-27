@@ -1,11 +1,14 @@
-type Module = {
+// the enums are defined in useSd.ts
+
+type SD = {
   init: () => void;
-  _resume_fn: () => void;
-  write_to_user_input: (str: string) => void;
+  suspendReason: SuspendReason;
+  resumeFn: (reason: ResumeReason) => void;
+  setInput: (str: string) => void;
   choices: string[];
   output: string[];
 };
 
-function init(): Promise<Module>;
+function init(): Promise<SD>;
 
 export default init;
