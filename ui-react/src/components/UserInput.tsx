@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useState } from "react";
 import { SDMethods } from "../useSd";
 
 export function UserInput({
@@ -20,16 +20,16 @@ export function UserInput({
         <div>
           <input
             value={inputValue}
-            onInput={(e) => {
-              setInputValue((e.target as HTMLInputElement).value);
-              onInputChange((e.target as HTMLInputElement).value);
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              onInputChange(e.target.value);
             }}
           />
         </div>
         <button type="submit">submit</button>
       </div>
       <ul>
-        {choices.slice(0, 5).map((item, index) => (
+        {choices.map((item, index) => (
           <li key={index}>
             <span>{item}</span>
           </li>

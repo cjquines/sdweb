@@ -1,11 +1,11 @@
-import { ComponentChildren } from "preact";
+import { ReactNode } from "react";
 import { SD, SDMethods, SuspendReason, useSD, useSDMethods } from "../useSd";
 
 function DatabaseLoader({
   children,
   sd,
 }: {
-  children: (methods: SDMethods) => ComponentChildren;
+  children: (methods: SDMethods) => ReactNode;
   sd: SD;
 }) {
   const methods = useSDMethods(sd);
@@ -13,7 +13,7 @@ function DatabaseLoader({
   const loaded = suspendReason !== SuspendReason.DB_PROGRESS;
 
   return loaded ? (
-    <>{children(methods)}</>
+    children(methods)
   ) : (
     <p>initializing database... ({progress} of 10)</p>
   );
@@ -22,7 +22,7 @@ function DatabaseLoader({
 export function Loader({
   children,
 }: {
-  children: (methods: SDMethods) => ComponentChildren;
+  children: (methods: SDMethods) => ReactNode;
 }) {
   const { sd } = useSD();
 
