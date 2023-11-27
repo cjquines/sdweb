@@ -3,7 +3,7 @@
 type SD = {
   init: () => void;
   suspendReason: SuspendReason;
-  resumeFn: (reason: ResumeReason) => void;
+  resumeFn: ((reason: ResumeReason) => void) | null;
   setInput: (str: string) => void;
   choices: string[];
   output: string[];

@@ -1,29 +1,29 @@
-import { ReactNode, useState } from "react";
-import { ResumeReason, SD, SuspendReason, useSD } from "../useSd";
+import { ReactNode } from "react";
+import { SD, SDMethods, SuspendReason, useSD, useSDMethods } from "../useSd";
 
 function DatabaseLoader({
   children,
   sd,
 }: {
-  children: (sd: SD) => ReactNode;
+  children: (methods: SDMethods) => ReactNode;
   sd: SD;
 }) {
-  const [progress, setProgress] = useState(-1);
-  const loaded = sd.suspendReason !== SuspendReason.DB_PROGRESS;
-
-  if (!loaded) {
-    setProgress(progress + 1);
-    sd.resumeFn(ResumeReason.PROGRESS_ACK);
-  }
+  const methods = useSDMethods(sd);
+  const { progress, suspendReason } = methods;
+  const loaded = suspendReason !== SuspendReason.DB_PROGRESS;
 
   return loaded ? (
-    children(sd)
+    children(methods)
   ) : (
     <p>initializing database... ({progress} of 10)</p>
   );
 }
 
-export function Loader({ children }: { children: (sd: SD) => ReactNode }) {
+export function Loader({
+  children,
+}: {
+  children: (methods: SDMethods) => ReactNode;
+}) {
   const { sd } = useSD();
 
   return sd ? (

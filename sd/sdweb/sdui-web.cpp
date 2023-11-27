@@ -32,12 +32,13 @@ suspend_reason last_suspend;
 resume_reason last_resume;
 
 EM_JS(int, Suspend_, (int reason), {
-  return Asyncify.handleSleep(function(resumeFn) {
-    Module.suspendReason = reason;
-    Module.resumeFn = function(value) {
-      setTimeout(function(){resumeFn(value)}, 0);
-    }
-  });
+  Module.suspendReason = reason;
+  Module.resumeFn = function(value) {
+    setTimeout(
+        function() { Module.resumeFn_(value); }, 0);
+  };
+  return Asyncify.handleSleep(
+      function(resumeFn) { Module.resumeFn_ = resumeFn; });
 });
 
 resume_reason Suspend(suspend_reason reason) {

@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { ResumeReason, SD } from "../useSd";
+import { SDMethods } from "../useSd";
 
-export function UserInput({ sd }: { sd: SD }) {
+export function UserInput({
+  choices,
+  onInputChange,
+  onInputSubmit,
+}: Pick<SDMethods, "choices" | "onInputChange" | "onInputSubmit">) {
   const [inputValue, setInputValue] = useState<string>("");
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        sd.setInput(inputValue);
-        sd.resumeFn(ResumeReason.SUBMIT);
+        onInputSubmit(inputValue);
       }}
     >
       <div>
@@ -19,15 +22,14 @@ export function UserInput({ sd }: { sd: SD }) {
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
-              sd.setInput(inputValue);
-              sd.resumeFn(ResumeReason.TYPE_CHAR);
+              onInputChange(e.target.value);
             }}
           />
         </div>
         <button type="submit">submit</button>
       </div>
       <ul>
-        {sd.choices.map((item, index) => (
+        {choices.map((item, index) => (
           <li key={index}>
             <span>{item}</span>
           </li>

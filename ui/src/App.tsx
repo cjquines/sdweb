@@ -4,11 +4,16 @@ import { UserInput } from "./components/UserInput";
 export function App() {
   return (
     <Loader>
-      {(sd) => {
+      {(methods) => {
+        const { choices, onInputChange, onInputSubmit, output } = methods;
         return (
           <>
-            <pre>{sd.output.join("\n")}</pre>
-            <UserInput sd={sd} />
+            <pre>{output.join("\n")}</pre>
+            <UserInput
+              choices={choices}
+              onInputChange={onInputChange}
+              onInputSubmit={onInputSubmit}
+            />
           </>
         );
       }}

@@ -10,7 +10,7 @@ EMCCFLAGS = --preload-file sd_calls.dat \
 						-lembind \
 						-sASSERTIONS \
 						-sASYNCIFY \
-						-sASYNCIFY_IMPORTS=[Suspend,Suspend_] \
+						-sASYNCIFY_IMPORTS=[Suspend_] \
 						-sMODULARIZE \
 						-sSTACK_SIZE=128kb \
 						-sALLOW_MEMORY_GROWTH

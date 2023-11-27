@@ -42,3 +42,63 @@ export const useSD = () => {
 
   return { sd: inited ? sd : null };
 };
+
+export const useSDMethods = (sd: SD) => {
+  const [choices, setChoices] = useState(sd.choices);
+  const [firstAck, setFirstAck] = useState(false);
+  const [output, setOutput] = useState(sd.output);
+  const [progress, setProgress] = useState(0);
+  const [suspendReason, setSuspendReason] = useState(sd.suspendReason);
+
+  const onSuspend = (reason: SuspendReason) => {
+    setChoices(sd.choices);
+    if (sd.output?.length > 0) {
+      setOutput(sd.output);
+      sd.output = [];
+    }
+    setSuspendReason(reason);
+
+    if (reason === SuspendReason.DB_PROGRESS) {
+      setProgress((progress) => progress + 1);
+      setTimeout(() => resume(ResumeReason.PROGRESS_ACK), 0);
+    }
+  };
+
+  const resume = (reason: ResumeReason) => {
+    const resumeFn = sd.resumeFn;
+    if (!resumeFn) {
+      console.warn("failed to resume:", reason);
+      return;
+    }
+    sd.resumeFn = null;
+    resumeFn(reason);
+    setTimeout(() => onSuspend(sd.suspendReason), 0);
+  };
+
+  if (!firstAck) {
+    setFirstAck(true);
+    resume(ResumeReason.PROGRESS_ACK);
+  }
+
+  const onInputChange = (input: string) => {
+    sd.setInput(input);
+    resume(ResumeReason.TYPE_CHAR);
+  };
+
+  const onInputSubmit = (input: string) => {
+    sd.setInput(input);
+    resume(ResumeReason.SUBMIT);
+  };
+
+  return {
+    choices,
+    onInputChange,
+    onInputSubmit,
+    output,
+    progress,
+    resume,
+    suspendReason,
+  };
+};
+
+export type SDMethods = ReturnType<typeof useSDMethods>;
