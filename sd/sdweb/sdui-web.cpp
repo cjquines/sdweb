@@ -165,7 +165,7 @@ uims_reply_thing get_user_input(suspend_reason reason, int tagger_class = 0) {
     matcher.match_user_input(which, true, true, false);
   } while (Suspend(reason) == TYPE_CHAR);
 
-  matcher.match_user_input(which, false, false, true);
+  matcher.match_user_input(which, false, true, true);
 
   // hope there's a match!
   modifier_block &matchmatch = matcher.m_final_result.match;

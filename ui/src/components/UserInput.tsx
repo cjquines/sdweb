@@ -1,18 +1,37 @@
-import { useState } from "preact/hooks";
-import { SDMethods } from "../useSd";
+import { useEffect, useState } from "preact/hooks";
+import { SD } from "../useSd";
 
-export function UserInput({
-  choices,
-  onInputChange,
-  onInputSubmit,
-}: Pick<SDMethods, "choices" | "onInputChange" | "onInputSubmit">) {
-  const [inputValue, setInputValue] = useState<string>("");
+const debounce = (callback: () => void, waitMS: number) => {
+  let timeout: number;
+  return () => {
+    clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      callback();
+    }, waitMS);
+  };
+};
+
+export function UserInput({ sd }: { sd: SD }) {
+  const [choices, setChoices] = useState<string[]>([]);
+  const [loadingChoices, setLoadingChoices] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    return sd.addCallback(({ choices }) => {
+      setChoices(choices);
+      setLoadingChoices(false);
+    });
+  }, []);
+
+  const updateChoices = debounce(() => {
+    sd.onInputChange(inputValue);
+  }, 500);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        onInputSubmit(inputValue);
+        sd.onInputSubmit(inputValue);
       }}
     >
       <div>
@@ -22,14 +41,16 @@ export function UserInput({
             value={inputValue}
             onInput={(e) => {
               setInputValue((e.target as HTMLInputElement).value);
-              onInputChange((e.target as HTMLInputElement).value);
+              setLoadingChoices(true);
+              updateChoices();
             }}
           />
         </div>
         <button type="submit">submit</button>
       </div>
+      {loadingChoices ? "loading new choices..." : ""}
       <ul>
-        {choices.slice(0, 5).map((item, index) => (
+        {choices.map((item, index) => (
           <li key={index}>
             <span>{item}</span>
           </li>

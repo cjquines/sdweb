@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# compiled sdweb
+public/sdweb.*
+src/sdweb/sdweb.js

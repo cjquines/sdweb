@@ -1,6 +1,7 @@
-// the enums are defined in useSd.ts
+// the enums are defined in index.ts
 
-type SD = {
+type WasmSD = {
+  // or, WaSD
   init: () => void;
   suspendReason: SuspendReason;
   resumeFn: ((reason: ResumeReason) => void) | null;
@@ -9,6 +10,6 @@ type SD = {
   output: string[];
 };
 
-function init(): Promise<SD>;
+function createSD(): Promise<WasmSD>;
 
-export default init;
+export default createSD;

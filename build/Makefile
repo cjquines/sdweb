@@ -45,7 +45,7 @@ prepare:
 sdweb.js: prepare $(SDLIB_OBJS) $(SDWEB_OBJS) sd_calls.dat
 	$(CC) $(CFLAGS) -o $@ $(SDWEB_LINK_OBJS) $(EMCCFLAGS)
 	echo 'export default Module;' >> sdweb.js
-	mv sdweb.js ../ui/src/sdweb/index.js
+	mv sdweb.js ../ui/src/sdweb/sdweb.js
 	mv sdweb.* ../ui/public
 
 sd_calls.dat:
@@ -74,5 +74,5 @@ $(SDLIB_OBJS) $(SDWEB_OBJS): sdui.h sd.h sdchars.h database.h paths.h
 
 clean:
 	find . -type f ! -name 'Makefile' ! -name 'test.js' -delete
-	rm -f ../ui/src/sdweb/index.js
+	rm -f ../ui/src/sdweb/sdweb.js
 	rm -f ../ui/public/sdweb.*
