@@ -1,37 +1,24 @@
 import { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
-import { SuspendReason } from "../sdweb";
-import { SD, useSD } from "../useSd";
+import { useState } from "preact/hooks";
+import { SuspendReason } from "../sdweb/types";
+import { useSD } from "../useSd";
 
-export function Loader({
-  children,
-}: {
-  children: (sd: SD) => ComponentChildren;
-}) {
-  const sd = useSD();
-  const [progress, setProgress] = useState(0);
+export function Loader({ children }: { children: ComponentChildren }) {
+  const [progress, setProgress] = useState(-1);
   const [dbLoaded, setDbLoaded] = useState(false);
 
-  useEffect(() => {
-    if (!sd) return;
+  useSD(({ progress, reason }) => {
+    const dbLoaded = reason !== SuspendReason.DB_PROGRESS;
+    setDbLoaded(dbLoaded);
+    setProgress(progress);
+    return dbLoaded;
+  });
 
-    const removeCallback = sd.addCallback(({ progress }, reason) => {
-      const dbLoaded = reason !== SuspendReason.DB_PROGRESS;
-      setDbLoaded(dbLoaded);
-      setProgress(progress);
-      if (dbLoaded) {
-        removeCallback();
-      }
-    });
-
-    return removeCallback;
-  }, [sd]);
-
-  if (sd && dbLoaded) {
-    return <>{children(sd)}</>;
+  if (dbLoaded) {
+    return <>{children}</>;
   }
-  if (sd) {
-    return <p>initializing database... ({progress} of 10)</p>;
+  if (progress >= 0) {
+    return <p>initializing database... ({progress} of 20)</p>;
   }
   return <p>downloading sd...</p>;
 }

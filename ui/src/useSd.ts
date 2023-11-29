@@ -1,32 +1,29 @@
-import * as Comlink from "comlink";
-import { useEffect, useState } from "preact/hooks";
-import { Callback, WorkerSD } from "./sdweb";
+import { useEffect } from "preact/hooks";
+import { WorkerReq, WorkerRes } from "./sdweb/types";
 
-export const useSD = () => {
-  const [inited, setInited] = useState(false);
-  const [methods, setMethods] = useState<WorkerSD | null>(null);
+const worker = new Worker(new URL("./sdweb/worker.ts", import.meta.url));
+const sendReq = (req: WorkerReq) => worker.postMessage(req);
 
+// callback returns true to be removed
+// the callback should only close over stable values!
+export const useSD = (callback?: (res: WorkerRes) => boolean | void) => {
   useEffect(() => {
-    if (inited) return;
-    setInited(true);
+    const removeCb = () => worker.removeEventListener("message", cb);
 
-    Comlink.wrap<(cb: (sd: Comlink.Remote<WorkerSD>) => void) => void>(
-      new Worker(new URL("./sdweb/index.ts", import.meta.url))
-    )(
-      Comlink.proxy((worker) => {
-        const addCallback = (cb: Callback) => {
-          let removeCallback = () => true;
-          worker.addCallback(Comlink.proxy(cb)).then((destruct) => {
-            removeCallback = destruct;
-          });
-          return removeCallback;
-        };
-        setMethods({ ...worker, addCallback });
-      })
-    );
-  }, [inited]);
+    const cb = (e: MessageEvent<WorkerRes>) => {
+      if (callback?.(e.data)) {
+        removeCb();
+      }
+    };
 
-  return methods;
+    worker.addEventListener("message", cb);
+
+    return removeCb;
+  }, []);
+
+  const onInputChange = (input: string) => sendReq({ type: "input", input });
+
+  const onInputSubmit = (input: string) => sendReq({ type: "submit", input });
+
+  return { onInputChange, onInputSubmit };
 };
-
-export type SD = NonNullable<ReturnType<typeof useSD>>;

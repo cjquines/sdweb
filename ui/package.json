@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "comlink": "^4.4.1",
     "preact": "^10.19.1"
   },
   "devDependencies": {

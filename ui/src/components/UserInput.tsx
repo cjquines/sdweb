@@ -1,5 +1,5 @@
-import { useEffect, useState } from "preact/hooks";
-import { SD } from "../useSd";
+import { useState } from "preact/hooks";
+import { useSD } from "../useSd";
 
 const debounce = (callback: () => void, waitMS: number) => {
   let timeout: number;
@@ -11,17 +11,15 @@ const debounce = (callback: () => void, waitMS: number) => {
   };
 };
 
-export function UserInput({ sd }: { sd: SD }) {
+export function UserInput() {
   const [choices, setChoices] = useState<string[]>([]);
   const [loadingChoices, setLoadingChoices] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  useEffect(() => {
-    return sd.addCallback(({ choices }) => {
-      setChoices(choices);
-      setLoadingChoices(false);
-    });
-  }, []);
+  const sd = useSD(({ choices }) => {
+    setChoices(choices);
+    setLoadingChoices(false);
+  });
 
   const updateChoices = debounce(() => {
     sd.onInputChange(inputValue);
