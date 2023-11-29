@@ -1,12 +1,12 @@
 import { useState } from "preact/hooks";
 import { useSD } from "../useSd";
 
-const debounce = (callback: () => void, waitMS: number) => {
+const debounce = (callback: (arg: string) => void, waitMS: number) => {
   let timeout: number;
-  return () => {
+  return (arg: string) => {
     clearTimeout(timeout);
     timeout = window.setTimeout(() => {
-      callback();
+      callback(arg);
     }, waitMS);
   };
 };
@@ -21,7 +21,7 @@ export function UserInput() {
     setLoadingChoices(false);
   });
 
-  const updateChoices = debounce(() => {
+  const updateChoices = debounce((inputValue) => {
     sd.onInputChange(inputValue);
   }, 500);
 
@@ -30,6 +30,7 @@ export function UserInput() {
       onSubmit={(e) => {
         e.preventDefault();
         sd.onInputSubmit(inputValue);
+        setInputValue("");
       }}
     >
       <div>
@@ -38,9 +39,10 @@ export function UserInput() {
           <input
             value={inputValue}
             onInput={(e) => {
-              setInputValue((e.target as HTMLInputElement).value);
+              const inputValue = (e.target as HTMLInputElement).value;
+              setInputValue(inputValue);
               setLoadingChoices(true);
-              updateChoices();
+              updateChoices(inputValue);
             }}
           />
         </div>

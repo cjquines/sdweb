@@ -1,8 +1,24 @@
 import { useEffect } from "preact/hooks";
 import { WorkerReq, WorkerRes } from "./sdweb/types";
 
-const worker = new Worker(new URL("./sdweb/worker.ts", import.meta.url));
-const sendReq = (req: WorkerReq) => worker.postMessage(req);
+const LOG_WORKER_MESSAGES = false;
+
+const worker = new Worker(new URL("./sdweb/worker.ts", import.meta.url), {
+  type: "module",
+});
+
+if (LOG_WORKER_MESSAGES) {
+  worker.onmessage = (e) => console.log("res", e.data);
+}
+
+worker.onerror = (err) => console.error("worker error:", err);
+
+const sendReq = (req: WorkerReq) => {
+  if (LOG_WORKER_MESSAGES) {
+    console.log("req", req);
+  }
+  worker.postMessage(req);
+};
 
 // callback returns true to be removed
 // the callback should only close over stable values!
@@ -17,6 +33,7 @@ export const useSD = (callback?: (res: WorkerRes) => boolean | void) => {
     };
 
     worker.addEventListener("message", cb);
+    sendReq({ type: "ping" });
 
     return removeCb;
   }, []);

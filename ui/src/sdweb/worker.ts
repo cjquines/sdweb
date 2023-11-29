@@ -4,17 +4,31 @@ import { ResumeReason, SuspendReason, WorkerReq, WorkerRes } from "./types";
 
 const getOnRequest = async () => {
   let progress = 0;
+
+  let res: WorkerRes = {
+    type: "suspend",
+    choices: [],
+    output: [],
+    progress: 0,
+    reason: 0,
+  };
+
   const sd = await createSD();
 
+  const pong = () => {
+    postMessage(res);
+  };
+
   const suspend = (reason: SuspendReason) => {
-    const { choices, output } = sd;
+    const { choices = [], output = [] } = sd;
+    sd.output = [];
 
     if (reason === SuspendReason.DB_PROGRESS) {
       progress += 1;
       setTimeout(() => resume(ResumeReason.PROGRESS_ACK), 0);
     }
 
-    const res: WorkerRes = {
+    res = {
       type: "suspend",
       choices,
       output,
@@ -22,7 +36,7 @@ const getOnRequest = async () => {
       reason,
     };
 
-    postMessage(res);
+    pong();
   };
 
   const resume = (reason: ResumeReason) => {
@@ -38,6 +52,10 @@ const getOnRequest = async () => {
 
   const onRequest = (req: WorkerReq) => {
     switch (req.type) {
+      case "ping": {
+        pong();
+        break;
+      }
       case "input": {
         sd.setInput(req.input);
         resume(ResumeReason.TYPE_CHAR);
@@ -54,6 +72,7 @@ const getOnRequest = async () => {
       }
     }
   };
+
   sd.init();
   resume(ResumeReason.PROGRESS_ACK);
 

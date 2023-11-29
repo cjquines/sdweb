@@ -17,6 +17,7 @@ export enum ResumeReason {
 }
 
 export type WorkerReq =
+  | { type: "ping" }
   | { type: "input"; input: string }
   | { type: "submit"; input: string };
 

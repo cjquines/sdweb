@@ -24,5 +24,5 @@ dist-ssr
 *.sw?
 
 # compiled sdweb
-public/sdweb.*
-src/sdweb/sdweb.js
+src/sdweb/sdweb.*
+!src/sdweb/sdweb.d.ts
